@@ -7,4 +7,5 @@ Udacity Deep Reinforcement Learning OpenAI Gym LunarLander-v2 project. Original 
  * [Numpy](https://numpy.org/)
  * [box2d](https://box2d.org/)
  * [matplotlib](https://matplotlib.org/)
- * [pyvirtualdisplay](https://pypi.org/project/PyVirtualDisplay/)
+ #### For rendering on Windows
+ * [Xming](https://sourceforge.net/projects/xming/) Full explenation [here](https://towardsdatascience.com/how-to-install-openai-gym-in-a-windows-environment-338969e24d30).

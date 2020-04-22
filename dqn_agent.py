@@ -56,7 +56,7 @@ class Agent():
                 self.learn(experiences, GAMMA)
 
     def act(self, state, eps=0.):
-        """Returns actions for given state as per current policy.
+        """Returns action for given state as per current policy.
         
         Params
         ======
@@ -64,10 +64,11 @@ class Agent():
             eps (float): epsilon, for epsilon-greedy action selection
         """
         state = torch.from_numpy(state).float().unsqueeze(0).to(device)
+        # Turn off training and gradient calculations and just get the action_values
         self.qnetwork_local.eval()
         with torch.no_grad():
             action_values = self.qnetwork_local(state)
-        self.qnetwork_local.train()
+        self.qnetwork_local.train() # Turning back on training for the future
 
         # Epsilon-greedy action selection
         if random.random() > eps:
@@ -85,8 +86,19 @@ class Agent():
         """
         states, actions, rewards, next_states, dones = experiences
 
-        ## TODO: compute and minimize the loss
-        "*** YOUR CODE HERE ***"
+        # Get max Q values for each of the next_states from target model (for Q Learning update equation)
+        max_next_Qvalues = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
+        # Compute Q targets for current states (1-dones computes to 0 if next state is terminal)
+        Q_target_values = rewards + (gamma * max_next_Qvalues * (1 - dones))
+        # Get expected Q values from local model for all actions taken
+        prev_expected_Qvalues = self.qnetwork_local(states).gather(1, actions)
+
+        # Compute loss
+        loss = F.mse_loss(Q_target_values, prev_expected_Qvalues)
+        # Minimize the loss
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
 
         # ------------------- update target network ------------------- #
         self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)                     
@@ -94,6 +106,7 @@ class Agent():
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
         θ_target = τ*θ_local + (1 - τ)*θ_target
+        target network moves in the direction of local network by TAU amount
 
         Params
         ======
