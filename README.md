@@ -1,6 +1,20 @@
 # OpenAI_Gym_LunarLanderV2
 Udacity Deep Reinforcement Learning OpenAI Gym LunarLander-v2 project. Original code and project details can be found [here](https://github.com/udacity/deep-reinforcement-learning/tree/master/dqn).
 
+## Agents
+###Baseline Agent
+The baseline agent is a Deep Q-Network with Experience Replay and Fixed Q-Targets. 
+More details found in this [paper](https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf).
+
+###Baseline + Double DQN
+This agent is the same as the baseline agent in every way except Agent.learn now uses the [Double Deep Q-Network](https://arxiv.org/pdf/1509.06461.pdf) algorithm.
+
+###Baseline + Prioritized Experience Replay
+
+###Baseline + Dueling DQN
+
+###Baseline + Prioritized Experience Replay and Dueling DQN
+
 ## Dependencies
  * [OpenAI Gym](https://gym.openai.com/)
  * [PyTorch](https://pytorch.org/)
