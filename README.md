@@ -6,9 +6,16 @@ Udacity Deep Reinforcement Learning OpenAI Gym LunarLander-v2 project. Original 
 The baseline agent is a Deep Q-Network with Experience Replay and Fixed Q-Targets. 
 More details found in this [paper](https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf).
 
+<p align="center">
+    <img src="/images/baseline_Model.png">
+</p>
+
 ### Baseline + Double DQN
 This agent is the same as the baseline agent in every way except Agent.learn now uses the [Double Deep Q-Network](https://arxiv.org/pdf/1509.06461.pdf) algorithm.
 
+<p align="center">
+    <img src="/images/Model_Comparison.png">
+</p>
 ### Baseline + Prioritized Experience Replay
 
 ### Baseline + Dueling DQN
