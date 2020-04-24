@@ -1,13 +1,12 @@
 import numpy as np
 import random
 from collections import namedtuple, deque
-
 from model import QNetwork
-
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
+# Hyperparameters for the Agents
 BUFFER_SIZE = int(1e5)  # replay buffer size
 BATCH_SIZE = 64         # minibatch size
 GAMMA = 0.99            # discount factor
@@ -16,6 +15,7 @@ LR = 5e-4               # learning rate
 UPDATE_LOCAL = 4        # how often to update the local network
 UPDATE_TARGET = 50      # how often to update the target network
 
+# Set up to run on GPU or CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -52,6 +52,7 @@ class Agent():
         # Learn every UPDATE_EVERY time steps.
         self.t_step += 1
         if self.t_step%UPDATE_LOCAL == 0:
+            self.t_step = 0
             # If enough samples are available in memory, get random subset and learn
             if len(self.memory) > BATCH_SIZE:
                 experiences = self.memory.sample()
@@ -117,71 +118,19 @@ class Agent():
             target_param.data.copy_(tau * local_param.data + (1.0 - tau) * target_param.data)
 
 
-class Agent_Double():
-    """Interacts with and learns from the environment."""
+class Agent_Double(Agent):
+    """Double DQN Agent that interacts with and learns from the environment"""
 
     def __init__(self, state_size, action_size, seed):
-        """Initialize an Agent object.
-        
+        """Initialize a Double DQN Agent object using inheritance from Agent.
+
         Params
         ======
             state_size (int): dimension of each state
             action_size (int): dimension of each action
             seed (int): random seed
         """
-        self.state_size = state_size
-        self.action_size = action_size
-        self.seed = random.seed(seed)
-
-        # Q-Network
-        self.qnetwork_local = QNetwork(state_size, action_size, seed).to(device)
-        self.qnetwork_target = QNetwork(state_size, action_size, seed).to(device)
-        self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=LR)
-
-        # Replay memory
-        self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed)
-        # Initialize time step (for updating every UPDATE_EVERY steps)
-        self.t_step = 0
-
-    def step(self, state, action, reward, next_state, done):
-        # Save experience in replay memory
-        self.memory.add(state, action, reward, next_state, done)
-        
-        # Learn every UPDATE_EVERY time steps.
-        self.t_step += 1
-        if self.t_step%UPDATE_LOCAL == 0:
-            # If enough samples are available in memory, get random subset and learn
-            if len(self.memory) > BATCH_SIZE:
-                experiences = self.memory.sample()
-                self.learn(experiences, GAMMA)
-                # update target network
-                self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
-
-        '''                 Hard update option (test later)
-        if self.t_step%UPDATE_TARGET == 0:
-            self.hard_update(self.qnetwork_local,self.qnetwork_target)
-        '''
-
-    def act(self, state, eps=0.):
-        """Returns action for given state as per current policy.
-        
-        Params
-        ======
-            state (array_like): current state
-            eps (float): epsilon, for epsilon-greedy action selection
-        """
-        state = torch.from_numpy(state).float().unsqueeze(0).to(device)
-        # Turn off training and gradient calculations and just get the action_values
-        self.qnetwork_local.eval()
-        with torch.no_grad():
-            action_values = self.qnetwork_local(state)
-        self.qnetwork_local.train() # Turning back on training for the future
-
-        # Epsilon-greedy action selection
-        if random.random() > eps:
-            return np.argmax(action_values.cpu().data.numpy())
-        else:
-            return random.choice(np.arange(self.action_size))
+        super().__init__(state_size, action_size, seed)
 
     def learn(self, experiences, gamma):
         """Update value parameters using given batch of experience tuples. (Double DQN)
@@ -193,7 +142,7 @@ class Agent_Double():
         """
         states, actions, rewards, next_states, dones = experiences
 
-        #           Double DQN Update (Different)          #
+        #           Double DQN Update                      #
         # Find max actions for next states based on the local_network
         local_argmax_actions = self.qnetwork_local(next_states).detach().argmax(dim=1).unsqueeze(1)
         # Use local_best_actions and target_network to get predicted value for next states
@@ -211,31 +160,6 @@ class Agent_Double():
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-
-    def soft_update(self, local_model, target_model, tau):
-        """Soft update model parameters.
-        θ_target = τ*θ_local + (1 - τ)*θ_target
-        target network moves in the direction of local network by TAU amount
-
-        Params
-        ======
-            local_model (PyTorch model): weights will be copied from
-            target_model (PyTorch model): weights will be copied to
-            tau (float): interpolation parameter 
-        """
-        for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
-            target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
-
-    def hard_update(self, local_model, target_model):
-        """Copies parameters from local_model to target_model
-
-        Params
-        ======
-            local_model (PyTorch model): weights will be copied from
-            target_model (PyTorch model): weights will be copied to
-        """
-        for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
-            target_param.data.copy_(local_param)
 
 
 class ReplayBuffer:
