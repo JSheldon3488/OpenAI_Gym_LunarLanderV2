@@ -18,7 +18,7 @@ This agent is the same as the baseline agent in every way except Agent.learn now
 </p>
 
 ### Baseline + Prioritized Experience Replay
-This agent is the same as the baseline agent with [prioritized experience replay](https://arxiv.org/pdf/1511.05952.pdf) added.
+This agent is the same as the baseline agent with [prioritized experience replay](https://arxiv.org/pdf/1511.05952.pdf) added. (Ran too slow, need faster priority replay buffer)
 
 ### Baseline + Dueling DQN
 
