@@ -16,7 +16,7 @@ UPDATE_LOCAL = 4        # how often to update the local network
 UPDATE_TARGET = 50      # how often to update the target network
 
 # Set up to run on GPU or CPU
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = "cpu" #torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class Agent():
@@ -44,6 +44,9 @@ class Agent():
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed)
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
+
+    def __str__(self):
+        return "DQN_Agent"
 
     def step(self, state, action, reward, next_state, done):
         # Save experience in replay memory
@@ -132,6 +135,9 @@ class Agent_Double(Agent):
         """
         super().__init__(state_size, action_size, seed)
 
+    def __str__(self):
+        return "Double_DQN_Agent"
+
     def learn(self, experiences, gamma):
         """Update value parameters using given batch of experience tuples. (Double DQN)
 
@@ -179,6 +185,9 @@ class Prioritized_Agent(Agent):
         self.alpha = 0.7
         self.alpha_decay = 0.9995
 
+    def __str__(self):
+        return "PER_DQN_Agent"
+
     def step(self, state, action, reward, next_state, done):
         """ Save experience in replay memory taking into account priority """
         # Initial priority from new experience is large to incentivize every experience to be sampled at least once
@@ -217,7 +226,7 @@ class Prioritized_Agent(Agent):
 
         # Calculate new priorities and update memory
         with torch.no_grad():
-            new_priority_values = torch.abs(td_target_values - prev_qvalues).to(device)
+            new_priority_values = torch.abs(td_target_values - prev_qvalues).cpu()
             self.memory.update_replay_buffer(sample_indexes, (states, actions, rewards, next_states, dones, new_priority_values))
 
         # Compute loss
@@ -244,6 +253,9 @@ class Prioritized_Double_Agent(Prioritized_Agent):
         """
         super().__init__(state_size, action_size, seed)
 
+    def __str__(self):
+        return "PER_Double_DQN_Agent"
+
     def learn(self, experiences, gamma, sample_indexes):
         """Update value parameters using given batch of experience tuples.
         Params
@@ -268,7 +280,7 @@ class Prioritized_Double_Agent(Prioritized_Agent):
 
         # Calculate new priorities and update memory
         with torch.no_grad():
-            new_priority_values = torch.abs(td_target_values - prev_qvalues).to(device)
+            new_priority_values = torch.abs(td_target_values - prev_qvalues).cpu().numpy()
             self.memory.update_replay_buffer(sample_indexes, (states, actions, rewards, next_states, dones, new_priority_values))
 
         # Compute loss
